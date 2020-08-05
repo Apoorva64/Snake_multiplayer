@@ -9,72 +9,10 @@ import decoder
 import pygame
 import snake_colors
 from screeninfo import get_monitors
-
-
-def draw(snacks, snakes, Rectangle_height, Rectangle_lengh, additionnal_info, Window_size, Grid_size,
-         background_color, Negative_color, Window, Draw_grid_bool, Winning_font, myfont):
-    width = Window_size[0]
-    height = Window_size[1]
-    # Clear window
-    Window.fill(background_color)
-    # Check if we need to get Negative color
-    if Negative_color:
-        draw_text_color = (255, 255, 255)
-    else:
-        draw_text_color = (0, 0, 0)
-    # Draw Grid
-    if Draw_grid_bool:
-        drawGrid(Window_size, Grid_size, Window, draw_text_color)
-    # if winner draw text
-    if 'winner' in additionnal_info:
-        text_Winner = Winning_font.render(additionnal_info, True, draw_text_color)
-        text_Winner_rect = text_Winner.get_rect(center=(Window_size[0] / 2, Window_size[1] / 2))
-        Window.blit(text_Winner, text_Winner_rect)
-        additionnal_info = ''
-    for snake_name, snake, lives in snakes:
-
-        cubes = snake
-        for i, cube in enumerate(cubes):
-            if i == 0:
-                # if it's the head of the snake draw crosses on it
-                bottom_left = ((cube[0][0]) * Rectangle_lengh, (cube[0][1]) * Rectangle_height)
-                top_right = (((cube[0][0]) * Rectangle_lengh) + Rectangle_lengh,
-                             ((cube[0][1]) * Rectangle_height) + Rectangle_height)
-                bottom_right = (bottom_left[0] + Rectangle_lengh, bottom_left[1])
-                top_left = (bottom_left[0], top_right[1])
-                pygame.draw.rect(Window, cube[2], (
-                (cube[0][0]) * Rectangle_lengh, (cube[0][1]) * Rectangle_height, Rectangle_lengh, Rectangle_height))
-                pygame.draw.line(Window, (0, 0, 0), bottom_left, top_right, 2)
-                pygame.draw.line(Window, (0, 0, 0), bottom_right, top_left, 2)
-                textsurface = myfont.render(snake_name + ' lives: ' + str(lives), True, draw_text_color)
-                text_startgame = myfont.render(additionnal_info, True, draw_text_color)
-                startgame_rect = text_startgame.get_rect(center=(int(width / 2), int(height / 25)))
-                Window.blit(text_startgame, startgame_rect)
-                Window.blit(textsurface, ((cube[0][0]) * Rectangle_lengh + 10, (cube[0][1]) * Rectangle_height + 10))
-            else:
-                # Else just draw the rectangle
-                pygame.draw.rect(Window, cube[2], (
-                (cube[0][0]) * Rectangle_lengh, (cube[0][1]) * Rectangle_height, Rectangle_lengh, Rectangle_height))
-    for snack in snacks:
-        # Draw snacks
-        ##        print
-        ##        print(snack[0])
-        ##        print(snack[0][0])
-        pygame.draw.rect(Window, snack[2], (
-        (snack[0][0]) * Rectangle_lengh, (snack[0][1]) * Rectangle_height, Rectangle_lengh, Rectangle_height))
-        pygame.draw.rect(Window, snack[2], (
-        (snack[0][0]) * Rectangle_lengh, (snack[0][1]) * Rectangle_height, Rectangle_lengh, Rectangle_height))
-        bottom_left = ((snack[0][0]) * Rectangle_lengh, (snack[0][1]) * Rectangle_height)
-        top_right = (
-        ((snack[0][0]) * Rectangle_lengh) + Rectangle_lengh, ((snack[0][1]) * Rectangle_height) + Rectangle_height)
-        bottom_right = (bottom_left[0] + Rectangle_lengh, bottom_left[1])
-        top_left = (bottom_left[0], top_right[1])
-        pygame.draw.rect(Window, snack[2], (
-        (snack[0][0]) * Rectangle_lengh, (snack[0][1]) * Rectangle_height, Rectangle_lengh, Rectangle_height))
-        pygame.draw.line(Window, (255, 255, 255), bottom_left, top_right, 2)
-        pygame.draw.line(Window, (255, 255, 255), bottom_right, top_left, 2)
-    pygame.display.update()
-
+import open_gl_draw
+from OpenGL.GL import *
+from OpenGL.GLUT import *
+from OpenGL.GLU import *
 
 def main(IP, my_username, color_input):
     # Reading settings
@@ -82,6 +20,17 @@ def main(IP, my_username, color_input):
     fps = settings['Client_Update_Fps']
     background_color = settings['Background_Color']
     Draw_grid_bool = settings['Draw_Grid']
+    # Calculating brightness
+    brightness = math.sqrt(
+        0.241 * background_color[0] * background_color[0] + 0.691 * background_color[1] * background_color[1] + 0.068 *
+        background_color[2] * background_color[2])
+    print(brightness)
+    # checking if we have to invert the colors
+    if brightness < 127:
+        Negative_color = True
+        print('must negative color')
+    else:
+        Negative_color = False
     # initilisating mixer and loading music and sfx
 
     pygame.mixer.pre_init(22100, -16, 1, 64)
@@ -164,8 +113,9 @@ def main(IP, my_username, color_input):
     Rectangle_lengh = Window_size[0] // Grid_size[0]
 
     #################START WINDOW
-    Window = pygame.display.set_mode(Window_size, pygame.FULLSCREEN)
-
+    Window = pygame.display.set_mode(Window_size,pygame.DOUBLEBUF | pygame.OPENGL)
+    gluPerspective(45, (width/ height), 0.1, 5000.0)
+    glTranslatef(0.0, 0.0, -55)
     snakes = []
     snacks = []
     Rectangle_height = Window_size[1] // Grid_size[1]
@@ -188,8 +138,8 @@ def main(IP, my_username, color_input):
             additional_info = 'Started'
 
             # buttons['start_game'].text=additional_info
-        draw(snacks, snakes, Rectangle_height, Rectangle_lengh, additional_info, Window_size,
-             Grid_size, background_color, Negative_color, Window, Draw_grid_bool, Winning_font, myfont)
+        open_gl_draw.draw(snacks, snakes, Rectangle_height, Rectangle_lengh, additional_info, Window_size,
+                          Grid_size, background_color, Negative_color, Window, Draw_grid_bool, Winning_font, myfont)
         # Processing snake inputs
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -356,4 +306,4 @@ def main(IP, my_username, color_input):
             pass
 
 
-# main('10.0.0.10', 'apoorva', 'white')
+main('10.0.0.10', 'apoorva', 'white')
