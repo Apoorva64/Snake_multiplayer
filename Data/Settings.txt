@@ -1,0 +1,6 @@
+This is the File to edit the settings of the server
+
+Game_Update_Fps  	= 25
+Server_Update_Fps	= 50
+Background_Color 	= R:0 G:100 B:15
+Enable_Draw        	= False

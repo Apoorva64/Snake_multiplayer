@@ -1,0 +1,5 @@
+#settings_client
+
+Client_Update_Fps  	= 50
+Background_Color 	= R:100 G:100 B:100
+Draw_grid               = False
