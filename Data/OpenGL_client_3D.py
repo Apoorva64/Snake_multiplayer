@@ -10,9 +10,11 @@ import pygame
 import snake_colors
 from screeninfo import get_monitors
 import open_gl_draw
+import opengl_3d_draw
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
+
 
 def main(IP, my_username, color_input):
     # Reading settings
@@ -56,7 +58,7 @@ def main(IP, my_username, color_input):
     music = pygame.mixer.music.load(os.path.join('Sounds', 'MusicMix.wav'))
     pygame.mixer.music.play(-1)
     # initilisating variables,buttons,list,etc...
-    key_pressed = [0, 0, 0]
+    key_pressed = ['Right', 0, 0]
     ##    width=500
     ##    height=500
     Grid_factor = 4
@@ -113,9 +115,9 @@ def main(IP, my_username, color_input):
     Rectangle_lengh = Window_size[0] // Grid_size[0]
 
     #################START WINDOW
-    Window = pygame.display.set_mode(Window_size,pygame.DOUBLEBUF | pygame.OPENGL)
-    gluPerspective(45, (width/ height), 0.1, 5000.0)
-    glTranslatef(0.0, 0.0, -55)
+    Window = pygame.display.set_mode(Window_size, pygame.DOUBLEBUF | pygame.OPENGL)
+    #Window.toggle_fullscreen()
+    # pygame.FULLSCREEN |
     snakes = []
     snacks = []
     Rectangle_height = Window_size[1] // Grid_size[1]
@@ -125,7 +127,15 @@ def main(IP, my_username, color_input):
     infinite_loop = True
     win_sound_played = False
     lose_sound_played = False
+    cntrl_pressed = False
+
     while infinite_loop:
+        glLoadIdentity()
+        gluPerspective(45, (width / height), 0.1, 5000.0)
+
+        #glTranslatef(0.0, 0.0, -55)
+        #glTranslatef(0.0, 0.0, -55)
+        #gluLookAt(0, 0, 55, 0, 0, 0, 0, 0.1, 1)
         pygame.time.delay(int(1000 / fps))
         ##    clock.tick(10)
         Mouse_pos = pygame.mouse.get_pos()
@@ -138,8 +148,8 @@ def main(IP, my_username, color_input):
             additional_info = 'Started'
 
             # buttons['start_game'].text=additional_info
-        open_gl_draw.draw(snacks, snakes, Rectangle_height, Rectangle_lengh, additional_info, Window_size,
-                          Grid_size, background_color, Negative_color, Window, Draw_grid_bool, Winning_font, myfont)
+        opengl_3d_draw.draw(snacks, snakes, Rectangle_height, Rectangle_lengh, additional_info, Window_size,
+                            Grid_size, background_color, Negative_color, Window, Draw_grid_bool, Winning_font, myfont,Username, key_pressed,cntrl_pressed)
         # Processing snake inputs
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -148,21 +158,33 @@ def main(IP, my_username, color_input):
                 if event.key == pygame.K_ESCAPE:
                     delete_all_snakes = True
                     infinite_loop = False
-
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_CAPSLOCK and cntrl_pressed==False:
+                    cntrl_pressed=True
+                elif event.key == pygame.K_CAPSLOCK:
+                    cntrl_pressed=False
+                if event.key == pygame.K_LEFT and key_pressed[0] == 'Up':
                     key_pressed[0] = 'Left'
-
-
-                elif event.key == pygame.K_RIGHT:
+                elif event.key == pygame.K_LEFT and key_pressed[0] == 'Down':
                     key_pressed[0] = 'Right'
-
-                elif event.key == pygame.K_UP:
+                elif event.key == pygame.K_LEFT and key_pressed[0]=='Left':
+                    key_pressed[0] = 'Down'
+                elif event.key == pygame.K_LEFT and key_pressed[0]=='Right':
                     key_pressed[0] = 'Up'
 
-                elif event.key == pygame.K_DOWN:
+                if event.key == pygame.K_RIGHT and key_pressed[0] == 'Up':
+                    key_pressed[0] = 'Right'
+                elif event.key == pygame.K_RIGHT and key_pressed[0] == 'Down':
+                    key_pressed[0] = 'Left'
+                elif event.key == pygame.K_RIGHT and key_pressed[0]=='Left':
+                    key_pressed[0] = 'Up'
+                elif event.key == pygame.K_RIGHT and key_pressed[0]=='Right':
                     key_pressed[0] = 'Down'
-                else:
-                    key_pressed[0] = None
+
+
+                #elif event.key == pygame.K_UP and key_pressed[0]!='Down':
+                #    key_pressed[0] = 'Up'
+                #elif event.key == pygame.K_DOWN and key_pressed[0]!='Up':
+                #    key_pressed[0] = 'Down'
                     # if event.key == pygame.K_a:
                 #     key_pressed[1]='Left'
 
@@ -306,5 +328,5 @@ def main(IP, my_username, color_input):
             pass
 
 
-#main('10.0.0.12', 'apoorva', 'white')
 main(input('give ip'), input('name'), input('give color'))
+#main('10.0.0.12','apoorva','white')
